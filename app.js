@@ -1,8 +1,29 @@
-"use strict";
+'use strict';
 
 const request = require('request');
+const http = require('http');
+const https = require('https');
+const urlModule = require('url');
 
-const myRequest = () => {
+
+const myRequest = (url, callback) => {
+  const protocol = urlModule.parse(url).protocol;
+
+  (protocol === 'http:' ? http : https).get(url, function(response) {
+
+    let holder = '';
+
+    response.on('data', (chunk) => {
+      holder += chunk;
+    });
+
+    response.on('end', () => {
+      return callback(null, response, holder);
+    });
+
+  }).on('error', (err) => {
+    callback(err);
+  });
   /*
   create your own request module here.
   It should take a url to make a http GET request, and a callback function with three arguments;
@@ -10,11 +31,11 @@ const myRequest = () => {
   2. response(Object; includes the response & statusCode of the request),
   3. body (String; includes the body of the request)
   */
-}
+};
 
 // Helper
 const testRequest = (module) => {
-  module('http://jsonplaceholder.typicode.com/users/1', function (error, response, body) {
+  module('https://jsonplaceholder.typicode.com/users/1', function(error, response, body) {
     console.log('error:', error);
     console.log('statusCode:', response && response.statusCode);
     console.log('body:', body);
